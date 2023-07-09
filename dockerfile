@@ -3,3 +3,5 @@ WORKDIR /app
 RUN pip3 install nilearn nibabel NeuroGraph numpy torch torch_geometric pandas
 COPY . .
 COPY prepare.py .
+COPY utils.py .
+COPY gcn.py .
