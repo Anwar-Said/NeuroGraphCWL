@@ -32,7 +32,7 @@ if __name__== "__main__":
         data = utils.construct_data(corr, y, threshold= 10)
         dataset.append(data)
     print("dataset processed!")
-    torch.save(dataset,"datasets/dataset_graph.pt")
+    torch.save(dataset,"dataset_graph.pt")
     print("dataset has been preprocessed!")
         
 
