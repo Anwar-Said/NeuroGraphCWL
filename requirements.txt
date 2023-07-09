@@ -1,0 +1,6 @@
+nilearn
+nibabel
+NeuroGraph
+numpy
+torch
+torch_geometric
