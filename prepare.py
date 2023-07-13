@@ -8,12 +8,12 @@ import torch
 
 if __name__== "__main__":
     
-    ids_file = sys.argv[1]
-    labels = sys.argv[2]
-    dataDir = sys.argv[3]
-    # ids_file = "data/ids.pkl"
-    # labels = "data/labels.csv"
-    # dataDir = "processed"
+    # ids_file = sys.argv[1]
+    # labels = sys.argv[2]
+    # dataDir = sys.argv[3]
+    ids_file = "data/ids.pkl"
+    labels = "data/labels.csv"
+    dataDir = "processed"
    
     # file_names = [file for file in os.listdir(dataDir) if file.endswith('corr.npy')]
     with open(ids_file,'rb') as f:
@@ -21,9 +21,10 @@ if __name__== "__main__":
     
     labels = pd.read_csv(labels).set_index('Subject')['Gender']
     labels = labels.to_dict()
-    if not os.path.exists("datasets"):
-        os.mkdir("datasets")
+    # if not os.path.exists("datasets"):
+    #     os.mkdir("datasets")
     ids = ids[:3]
+    print(ids)
     dataset = []
     for iid in ids:
         corr = np.load(os.path.join(dataDir, (iid + "_corr.npy")))

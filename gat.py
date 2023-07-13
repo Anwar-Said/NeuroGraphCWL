@@ -8,13 +8,14 @@ from torch_geometric.loader import DataLoader
 import os,random
 from utils import *
 import torch
+import argparse
 import numpy as np
 import csv
 import sys
 from NeuroGraph.datasets import NeuroGraphStatic
 
 name = sys.argv[1]
-# name = "data/HCPGender.pt" ### example
+name = "data/HCPGender.pt"
 epochs = 3
 seed= 13
 batch_size = 16
@@ -31,28 +32,23 @@ if torch.cuda.is_available():
 random.seed(seed)
 np.random.seed(seed)
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+# device = "cpu" # using only cpu
+# dataset = NeuroGraphStatic(root = "data/",dataset_name=name)
 
+data, slices = torch.load(name)
+num_samples = slices['x'].size(0)-1
+dataset = []
+for i in range(num_samples):
+    start_x = slices['x'][i]
+    end_x = slices['x'][i + 1]
+    x= data.x[start_x:end_x,:]
+    start_ei = slices['edge_index'][i]
+    end_ei = slices['edge_index'][i + 1]
+    edge_index = data.edge_index[:,start_ei:end_ei]
+    y = data.y[i]
+    data_sample = Data(x =x, edge_index = edge_index, y=y)
+    dataset.append(data_sample)
 
-
-### THE FOLLOWING LOOP IS ONLY FOR THE DATASETS IN PYG FORMAT. COMMENT THEM IF THE DATASET IS SAVED WITH THE PREPARE STEP
-# data, slices = torch.load(name)
-# num_samples = slices['x'].size(0)-1
-# dataset = []
-# for i in range(num_samples):
-#     start_x = slices['x'][i]
-#     end_x = slices['x'][i + 1]
-#     x= data.x[start_x:end_x,:]
-#     start_ei = slices['edge_index'][i]
-#     end_ei = slices['edge_index'][i + 1]
-#     edge_index = data.edge_index[:,start_ei:end_ei]
-#     y = data.y[i]
-#     data_sample = Data(x =x, edge_index = edge_index, y=y)
-#     dataset.append(data_sample)
-
-#########################################################################33
-
-#### LOADING THE DATASET
-dataset = torch.load(name)
 labels = [d.y.item() for d in dataset]
 
 train_tmp, test_indices = train_test_split(list(range(len(labels))),
@@ -99,26 +95,18 @@ model = ResidualGNNs(num_features,hidden,hidden_mlp,num_layers, num_classes).to(
 print(model)
 optimizer = Adam(model.parameters(), lr=lr, weight_decay=weight_decay)
 loss, test_acc = [],[]
-best_val_acc = 0.0
+best_val_acc,best_val_loss = 0.0,0.0
 val_acc_history, test_acc_history = [],[]
 
 for epoch in range(epochs):
     loss = train(train_loader)
     val_acc = test(val_loader)
     test_acc = test(test_loader)
-    if val_acc > best_val_acc:
-         best_val_acc = val_acc
-         if epoch >=epochs/2:
-              torch.save(model.state_dict(),'data/gcn_trained.pkl') ### save the best model
-              
+    # if epoch%10==0:
     print("epoch: {}, loss: {}, val_acc:{}, test_acc:{}".format(epoch, np.round(loss.item(),6), np.round(val_acc,2),np.round(test_acc,2)))
     val_acc_history.append(val_acc)
     test_acc_history.append(test_acc)
-model.eval()
-model.load_state_dict(torch.load('data/gcn_trained.pkl')) ### load the best model for testing
-test_acc = test(test_loader)
 print("best test and val acc:", round(np.max(test_acc_history),3),round(np.max(val_acc_history),3))
 with open("results.csv", 'w', newline='') as csvfile:
         writer = csv.writer(csvfile)
-        writer.writerow([np.max(val_acc_history), test_acc])
-print("model has been trained and saved to the desk!")
+        writer.writerow([np.max(val_acc_history), np.max(test_acc_history)])
