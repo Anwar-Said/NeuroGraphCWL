@@ -23,11 +23,12 @@ if __name__== "__main__":
     labels = labels.to_dict()
     # if not os.path.exists("datasets"):
     #     os.mkdir("datasets")
-    ids = ids[:3]
-    print(ids)
+    ids = [1,2,3] ##### assume the ids to be 1,2,3 ....
+    
+
     dataset = []
     for iid in ids:
-        corr = np.load(os.path.join(dataDir, (iid + "_corr.npy")))
+        corr = np.load(os.path.join(dataDir, (iid + "_corr.npy"))) ### expect corr matrices with the same name as subject ids
         label = labels.get(int(iid))
         y = 1 if label=="M" else 0
         data = utils.construct_data(corr, y, threshold= 10)
